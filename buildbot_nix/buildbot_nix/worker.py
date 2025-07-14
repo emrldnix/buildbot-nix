@@ -46,7 +46,7 @@ def setup_worker(
     basedir.mkdir(parents=True, exist_ok=True, mode=0o700)
 
     workername = f"{config.worker_name}-{builder_id:03}"
-    keepalive = 600
+    keepalive = 30
     umask = None
     maxdelay = 300
     numcpus = None
