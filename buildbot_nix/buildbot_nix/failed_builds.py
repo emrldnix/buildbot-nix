@@ -22,21 +22,20 @@ class FailedBuild(BaseModel):
 
 class FailedBuildDB:
     def __init__(self, db_path: Path) -> None:
-        self.database = dbm.open(str(db_path), "c")  # noqa: SIM115
-
-    def close(self) -> None:
-        self.database.close()
+        self.db_path = db_path
 
     def add_build(self, derivation: str, time: datetime, url: str) -> None:
-        self.database[derivation] = FailedBuild(
-            derivation=derivation, time=time, url=url
-        ).model_dump_json()
+        with dbm.open(str(self.db_path), "c") as db:
+            db[derivation] = FailedBuild(
+                derivation=derivation, time=time, url=url
+            ).model_dump_json()
 
     def check_build(self, derivation: str) -> FailedBuild | None:
-        if derivation in self.database:
-            # TODO create dummy if deser fails?
-            return FailedBuild.model_validate_json(self.database[derivation])
+        with dbm.open(str(self.db_path), "c") as db:
+            if derivation in db:
+                return FailedBuild.model_validate_json(db[derivation])
         return None
 
     def remove_build(self, derivation: str) -> None:
-        del self.database[derivation]
+        with dbm.open(str(self.db_path), "c") as db:
+            del db[derivation]
